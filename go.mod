@@ -1,4 +1,4 @@
-module github.com/kitatsu/microgit
+module microgit
 
 go 1.21
 
