@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"microgit/utils"
 	"os"
 	"path/filepath"
 	"strings"
@@ -20,13 +21,13 @@ func hashContent(content []byte) string {
 
 // writeObject saves the file content to objects/<hash>
 func writeObject(hash string, content []byte) error {
-	objectPath := filepath.Join(DEFAULT_PATH, "objects", hash)
+	objectPath := filepath.Join(utils.DEFAULT_PATH, "objects", hash)
 	return os.WriteFile(objectPath, content, 0644)
 }
 
 // updateIndex writes or updates the index file with path -> hash
 func updateIndex(filePath, hash string) error {
-	indexPath := filepath.Join(DEFAULT_PATH, "index")
+	indexPath := filepath.Join(utils.DEFAULT_PATH, "index")
 	existing := ""
 
 	if data, err := os.ReadFile(indexPath); err == nil {
@@ -47,16 +48,53 @@ func updateIndex(filePath, hash string) error {
 		lines = append(lines, filePath+" "+hash)
 	}
 
-	newIndex := strings.Join(lines, "\n")
+	newIndex := strings.Trim(strings.Join(lines, "\n"), "\n")
 	return os.WriteFile(indexPath, []byte(newIndex), 0644)
+}
+
+func stageFile(path, fileName string) error {
+	content, err := os.ReadFile(path)
+	if err != nil {
+		fmt.Printf("Error reading file '%s': %v\n", fileName, err)
+		return nil
+	}
+
+	// Calculate hash
+	hash := hashContent(content)
+
+	// Write object
+	if err := writeObject(hash, content); err != nil {
+		fmt.Printf("Error writing object for '%s': %v\n", fileName, err)
+		return nil
+	}
+
+	// Update index
+	if err := updateIndex(path, hash); err != nil {
+		fmt.Printf("Error updating index for '%s': %v\n", fileName, err)
+		return nil
+	}
+
+	fmt.Printf("Added %s (hash: %s)\n", path, hash)
+
+	return nil
 }
 
 // addCmd represents the add command
 var addCmd = &cobra.Command{
 	Use:   "add [files...]",
 	Short: "Add files to the staging area",
-	Long: `Add files to the staging area. This command takes one or more file paths
-as arguments and stages them for the next commit.`,
+	Long: `Add files to the staging area for the next commit.
+
+Usage:
+  microgit add <file1> [file2 ...]  - Stage specific files
+  microgit add .                    - Stage all files in current directory
+
+The add command will:
+1. Calculate a SHA-256 hash of the file content
+2. Store the file content in the objects directory
+3. Update the index with the file path and corresponding hash
+
+Files in the .microgit/ and .git/ directories are automatically ignored.`,
 
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 0 {
@@ -64,38 +102,31 @@ as arguments and stages them for the next commit.`,
 			return
 		}
 
-		currentDir, err := os.Getwd()
-		if err != nil {
-			fmt.Println("Error getting current directory:", err)
+		if args[0] == "." {
+			err := filepath.WalkDir(".", func(path string, file os.DirEntry, err error) error {
+				if err != nil {
+					return err
+				}
+
+				if file.IsDir() || strings.HasPrefix(path, utils.DEFAULT_PATH) || strings.HasPrefix(path, ".git/") {
+					return nil
+				}
+
+				return stageFile(path, file.Name())
+			})
+			if err != nil {
+				fmt.Printf("Error reading directory: %v\n", err)
+				return
+			}
 			return
 		}
 
 		for _, file := range args {
-			fullFilePath := filepath.Join(currentDir, file)
-
-			// Read file content
-			content, err := os.ReadFile(fullFilePath)
+			err := stageFile(file, file)
 			if err != nil {
-				fmt.Printf("Error reading file '%s': %v\n", file, err)
+				fmt.Printf("Error staging file: %v", err)
 				continue
 			}
-
-			// Calculate hash
-			hash := hashContent(content)
-
-			// Write object
-			if err := writeObject(hash, content); err != nil {
-				fmt.Printf("Error writing object for '%s': %v\n", file, err)
-				continue
-			}
-
-			// Update index
-			if err := updateIndex(file, hash); err != nil {
-				fmt.Printf("Error updating index for '%s': %v\n", file, err)
-				continue
-			}
-
-			fmt.Printf("Added %s (hash: %s)\n", file, hash)
 		}
 	},
 }

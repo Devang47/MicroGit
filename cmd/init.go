@@ -4,19 +4,22 @@ import (
 	"fmt"
 	"os"
 
+	"microgit/utils"
+
 	"github.com/spf13/cobra"
 )
 
 // initCmd represents the init command
 var initCmd = &cobra.Command{
 	Use:   "init",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-`,
+	Short: "Initialize a new MicroGit repository",
+	Long: `Initialize a new MicroGit repository in the current directory.
+This creates the necessary directory structure and files for version control.
+The repository will be initialized in a .microgit directory.`,
+
 	Run: func(cmd *cobra.Command, args []string) {
-		repoDir := DEFAULT_PATH
-		objectsDir := DEFAULT_PATH + "/objects"
+		repoDir := utils.DEFAULT_PATH
+		objectsDir := utils.DEFAULT_PATH + "/objects"
 
 		if _, err := os.Stat(repoDir); !os.IsNotExist(err) {
 			fmt.Println("\nRepository already initialized.")
@@ -31,8 +34,10 @@ and usage of using your command. For example:
 		os.WriteFile(repoDir+"/index", []byte(""), 0644)
 		// Pointer to the current commit
 		os.WriteFile(repoDir+"/HEAD", []byte(""), 0644)
+		// Pointer to the latest commit
+		os.WriteFile(repoDir+"/LATEST", []byte(""), 0644)
 
-		fmt.Printf("Initialized empty SCM repository in %s/\n", DEFAULT_PATH)
+		fmt.Printf("Initialized empty SCM repository in %s/\n", utils.DEFAULT_PATH)
 	},
 }
 

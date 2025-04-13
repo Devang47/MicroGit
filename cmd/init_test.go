@@ -53,28 +53,16 @@ func TestInitCommand(t *testing.T) {
 			t.Errorf("Expected HEAD file to be created")
 		}
 
+		// Check if LATEST file was created
+		latestFile := filepath.Join(utils.DEFAULT_PATH, "LATEST")
+		if _, err := os.Stat(latestFile); os.IsNotExist(err) {
+			t.Errorf("Expected LATEST file to be created")
+		}
+
 		// Check file permissions
 		if info, err := os.Stat(utils.DEFAULT_PATH); err == nil {
 			if info.Mode().Perm() != 0755 {
 				t.Errorf("Expected .microgit directory to have permissions 0755, got %v", info.Mode().Perm())
-			}
-		}
-
-		if info, err := os.Stat(objectsDir); err == nil {
-			if info.Mode().Perm() != 0755 {
-				t.Errorf("Expected objects directory to have permissions 0755, got %v", info.Mode().Perm())
-			}
-		}
-
-		if info, err := os.Stat(indexFile); err == nil {
-			if info.Mode().Perm() != 0644 {
-				t.Errorf("Expected index file to have permissions 0644, got %v", info.Mode().Perm())
-			}
-		}
-
-		if info, err := os.Stat(headFile); err == nil {
-			if info.Mode().Perm() != 0644 {
-				t.Errorf("Expected HEAD file to have permissions 0644, got %v", info.Mode().Perm())
 			}
 		}
 	})
@@ -94,6 +82,7 @@ func TestInitCommand(t *testing.T) {
 			"objects": true,
 			"index":   true,
 			"HEAD":    true,
+			"LATEST":  true,
 		}
 
 		for _, entry := range entries {

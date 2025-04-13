@@ -66,8 +66,6 @@ func TestAddCmd(t *testing.T) {
 	// Run the add command
 	addCmd.Run(nil, []string{"test.txt"})
 
-	// Get current directory for path construction
-
 	// Verify the object was created
 	hash := hashContent(testContent)
 	objectPath := filepath.Join(utils.DEFAULT_PATH, "objects", hash)
