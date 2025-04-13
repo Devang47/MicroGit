@@ -10,18 +10,18 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func readCommit(hash string) (SavePoint, error) {
+func readCommit(hash string) (utils.SavePoint, error) {
 	objectPath := filepath.Join(utils.DEFAULT_PATH, "objects", hash)
 
 	data, err := os.ReadFile(objectPath)
 	if err != nil {
-		return SavePoint{}, fmt.Errorf("could not read commit object: %w", err)
+		return utils.SavePoint{}, fmt.Errorf("could not read commit object: %w", err)
 	}
 
-	var commit SavePoint
+	var commit utils.SavePoint
 	err = json.Unmarshal(data, &commit)
 	if err != nil {
-		return SavePoint{}, fmt.Errorf("failed to parse commit JSON: %w", err)
+		return utils.SavePoint{}, fmt.Errorf("failed to parse commit JSON: %w", err)
 	}
 	return commit, nil
 }

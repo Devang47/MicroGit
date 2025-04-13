@@ -33,7 +33,7 @@ func getWorkingFiles() (map[string]string, error) {
 			return nil
 		}
 
-		files[path] = hashContent(content)
+		files[path] = utils.HashContent(content)
 		return nil
 	})
 

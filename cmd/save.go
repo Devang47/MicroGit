@@ -12,13 +12,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type SavePoint struct {
-	Message   string            `json:"message"`
-	Timestamp string            `json:"timestamp"`
-	Parent    string            `json:"parent"`
-	Files     map[string]string `json:"files"`
-}
-
 func getHead() string {
 	headPath := filepath.Join(utils.DEFAULT_PATH, "HEAD")
 
@@ -79,18 +72,16 @@ func readIndex() (map[string]string, error) {
 	return index, nil
 }
 
-func writeSavePointObject(savePoint SavePoint) (string, error) {
+func writeSavePointObject(savePoint utils.SavePoint) (string, error) {
 	jsonData, err := json.MarshalIndent(savePoint, "", "  ")
 	if err != nil {
 		return "", err
 	}
 
 	// Hash of the entire SavePoint JSON
-	hash := hashContent(jsonData)
+	hash := utils.HashContent(jsonData)
 
-	objectPath := filepath.Join(utils.DEFAULT_PATH, "objects", hash)
-
-	err = os.WriteFile(objectPath, jsonData, 0644)
+	err = utils.WriteObject(hash, jsonData)
 	if err != nil {
 		return "", err
 	}
@@ -127,7 +118,7 @@ The staged files will be committed and the staging area will be cleared after th
 		parent := getHead()
 		timestamp := time.Now().Format(time.RFC3339)
 
-		savePoint := SavePoint{
+		savePoint := utils.SavePoint{
 			Message:   message,
 			Timestamp: timestamp,
 			Parent:    parent,

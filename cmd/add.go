@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
 	"microgit/utils"
 	"os"
@@ -11,19 +9,6 @@ import (
 
 	"github.com/spf13/cobra"
 )
-
-// hashContent returns the SHA-256 hash of the file content
-func hashContent(content []byte) string {
-	hasher := sha256.New()
-	hasher.Write(content)
-	return hex.EncodeToString(hasher.Sum(nil))
-}
-
-// writeObject saves the file content to objects/<hash>
-func writeObject(hash string, content []byte) error {
-	objectPath := filepath.Join(utils.DEFAULT_PATH, "objects", hash)
-	return os.WriteFile(objectPath, content, 0644)
-}
 
 // updateIndex writes or updates the index file with path -> hash
 func updateIndex(filePath, hash string) error {
@@ -60,10 +45,10 @@ func stageFile(path, fileName string) error {
 	}
 
 	// Calculate hash
-	hash := hashContent(content)
+	hash := utils.HashContent(content)
 
 	// Write object
-	if err := writeObject(hash, content); err != nil {
+	if err := utils.WriteObject(hash, content); err != nil {
 		fmt.Printf("Error writing object for '%s': %v\n", fileName, err)
 		return nil
 	}

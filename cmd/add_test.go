@@ -28,7 +28,7 @@ func TestHashContent(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := hashContent(tt.content)
+			got := utils.HashContent(tt.content)
 			if got != tt.expected {
 				t.Errorf("hashContent() = %v, want %v", got, tt.expected)
 			}
@@ -67,7 +67,7 @@ func TestAddCmd(t *testing.T) {
 	addCmd.Run(nil, []string{"test.txt"})
 
 	// Verify the object was created
-	hash := hashContent(testContent)
+	hash := utils.HashContent(testContent)
 	objectPath := filepath.Join(utils.DEFAULT_PATH, "objects", hash)
 	if _, err := os.Stat(objectPath); os.IsNotExist(err) {
 		t.Errorf("object file was not created at %s", objectPath)

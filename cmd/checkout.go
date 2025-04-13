@@ -50,7 +50,7 @@ This command will:
 			return
 		}
 
-		var savePoint SavePoint
+		var savePoint utils.SavePoint
 		if err := json.Unmarshal(data, &savePoint); err != nil {
 			fmt.Printf("invalid savePoint format: %v", err)
 			return
